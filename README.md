@@ -148,7 +148,7 @@ The queue uses Redis as the broker. The processor runs in the same process as th
 
 5. **AI**
    - Timeout handling recommended for production
-   - Structured output via `responseMimeType: application/json`
+   - Structured output via JSON in the system prompt (function calling does not support responseMimeType)
 
 ---
 

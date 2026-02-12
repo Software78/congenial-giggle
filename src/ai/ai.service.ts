@@ -56,7 +56,6 @@ export class AIService {
       contents: contents as never,
       config: {
         tools: [{ functionDeclarations: tools }],
-        responseMimeType: 'application/json',
       },
     });
 
@@ -125,7 +124,6 @@ export class AIService {
           contents: contents as never,
           config: {
             tools: [{ functionDeclarations: tools }],
-            responseMimeType: 'application/json',
           },
         });
       } else {

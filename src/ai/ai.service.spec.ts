@@ -93,7 +93,7 @@ describe('AIService', () => {
         expect.objectContaining({
           model: 'gemini-2.5-flash',
           config: expect.objectContaining({
-            responseMimeType: 'application/json',
+            tools: expect.any(Array),
           }),
         }),
       );
