@@ -2,6 +2,18 @@
 
 A backend service for a simple content platform. Creators publish content (title, description, tags); users fetch a feed and search for content. Built with NestJS, PostgreSQL, Redis, and Google Gemini AI.
 
+This README covers the following (mandatory for evaluation):
+
+- **Architecture overview and key decisions**
+- **Data model**
+- **How background processing is handled**
+- **Caching approach**
+- **AI integration approach**
+- **Performance considerations**
+- **How to run the project**
+
+---
+
 ## Architecture Overview
 
 ```mermaid
