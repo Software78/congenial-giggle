@@ -11,6 +11,6 @@ export class AIController {
   @Post('assist')
   @ApiOperation({ summary: 'AI assistant with tool calling (summarize, search)' })
   assist(@Body() dto: AssistRequestDto) {
-    return this.aiService.assist(dto.query);
+    return this.aiService.assist(dto.query, dto.requestId);
   }
 }

@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import * as CacheManager from 'cache-manager';
 import { GoogleGenAI } from '@google/genai';
 import { ContentService } from '../content/content.service';
 import { SearchService } from '../search/search.service';
 import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
+
+const AI_ASSIST_CACHE_KEY_PREFIX = 'ai:assist:';
 
 const SYSTEM_PROMPT = `You are a helpful assistant for a content platform. You can:
 - Summarize content by ID (use get_content_by_id with the content ID)
@@ -18,6 +23,7 @@ export class AIService {
   private readonly ai: GoogleGenAI;
 
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: CacheManager.Cache,
     private readonly contentService: ContentService,
     private readonly searchService: SearchService,
     private readonly configService: ConfigService,
@@ -26,13 +32,26 @@ export class AIService {
     this.ai = new GoogleGenAI({ apiKey: apiKey || '' });
   }
 
-  async assist(query: string): Promise<Record<string, unknown>> {
+  async assist(query: string, requestId?: string): Promise<Record<string, unknown>> {
+    const cacheTtlMs =
+      (this.configService.get<number>('gemini.assistCacheTtlSeconds') ?? 600) * 1000;
+
+    if (requestId) {
+      const cached = await this.cacheManager.get<Record<string, unknown>>(
+        `${AI_ASSIST_CACHE_KEY_PREFIX}${requestId}`,
+      );
+      if (cached) {
+        return { ...cached, requestId };
+      }
+    }
+
+    const id = requestId ?? uuidv4();
     const tools = this.getToolDeclarations();
     const contents: unknown[] = [
       { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\nUser query: ${query}` }] },
     ];
 
-    let result = await this.ai.models.generateContent({
+    let result = await this.generateContentWithRetry({
       model: 'gemini-1.5-flash',
       contents: contents as never,
       config: {
@@ -100,7 +119,7 @@ export class AIService {
           ],
         });
 
-        result = await this.ai.models.generateContent({
+        result = await this.generateContentWithRetry({
           model: 'gemini-1.5-flash',
           contents: contents as never,
           config: {
@@ -114,15 +133,64 @@ export class AIService {
     }
 
     const text = result.text?.trim();
+    let body: Record<string, unknown>;
     if (text) {
       try {
-        return JSON.parse(text) as Record<string, unknown>;
+        body = JSON.parse(text) as Record<string, unknown>;
       } catch {
-        return { response: text };
+        body = { response: text };
       }
+    } else {
+      body = { response: 'No response generated' };
     }
 
-    return { response: 'No response generated' };
+    await this.cacheManager.set(`${AI_ASSIST_CACHE_KEY_PREFIX}${id}`, body, cacheTtlMs);
+    return { ...body, requestId: id };
+  }
+
+  private async generateContentWithRetry(
+    options: Parameters<GoogleGenAI['models']['generateContent']>[0],
+  ): Promise<Awaited<ReturnType<GoogleGenAI['models']['generateContent']>>> {
+    const maxAttempts = this.configService.get<number>('gemini.assistRetryMaxAttempts') ?? 3;
+    const initialDelayMs =
+      this.configService.get<number>('gemini.assistRetryInitialDelayMs') ?? 1000;
+    const maxDelayMs = this.configService.get<number>('gemini.assistRetryMaxDelayMs') ?? 10000;
+
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await this.ai.models.generateContent(options);
+      } catch (err) {
+        lastError = err;
+        if (attempt === maxAttempts || !this.isTransientError(err)) {
+          throw err;
+        }
+        const delayMs = Math.min(
+          initialDelayMs * Math.pow(2, attempt - 1) + Math.random() * 200,
+          maxDelayMs,
+        );
+        await this.sleep(delayMs);
+      }
+    }
+    throw lastError;
+  }
+
+  private isTransientError(err: unknown): boolean {
+    if (err && typeof err === 'object') {
+      const status = (err as { status?: number }).status;
+      if (typeof status === 'number') {
+        return status >= 500 || status === 429;
+      }
+      const code = (err as { code?: string }).code;
+      if (typeof code === 'string') {
+        return ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAI_AGAIN'].includes(code);
+      }
+    }
+    return true;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private getToolDeclarations() {
