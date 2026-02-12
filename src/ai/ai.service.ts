@@ -14,7 +14,8 @@ const SYSTEM_PROMPT = `You are a helpful assistant for a content platform. You c
 - Search for content by keyword or tags (use search_content)
 - Provide contextual recommendations based on user queries
 
-Always respond with valid JSON. When summarizing, return: {"summary": "...", "contentId": <number>}.
+Always respond with valid JSON only. Do not wrap in markdown code blocks.
+When summarizing, return: {"summary": "...", "contentId": <number>}.
 When searching/recommending, return: {"results": [...], "message": "..."}.
 Be concise and helpful.`;
 
@@ -136,8 +137,10 @@ export class AIService {
     const text = result.text?.trim();
     let body: Record<string, unknown>;
     if (text) {
+      const stripped = this.stripMarkdownCodeBlock(text);
       try {
-        body = JSON.parse(text) as Record<string, unknown>;
+        body = JSON.parse(stripped) as Record<string, unknown>;
+        delete body.requestId;
       } catch {
         body = { response: text };
       }
@@ -192,6 +195,11 @@ export class AIService {
 
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private stripMarkdownCodeBlock(text: string): string {
+    const match = text.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/);
+    return match ? match[1].trim() : text;
   }
 
   private getToolDeclarations() {
