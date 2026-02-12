@@ -8,5 +8,7 @@
   },
   "transformIgnorePatterns": [
     "node_modules/(?!(@google/genai|google-auth-library|p-retry|is-network-error)/)"
-  ]
+  ],
+  "testTimeout": 10000,
+  "forceExit": true
 }

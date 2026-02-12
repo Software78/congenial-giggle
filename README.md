@@ -250,6 +250,22 @@ src/
 
 ---
 
+## Testing
+
+**Unit tests** (no external services required):
+```bash
+npm test
+```
+
+**E2E tests** (requires Docker with PostgreSQL and Redis running, and `GEMINI_API_KEY` set):
+```bash
+docker-compose up -d
+export GEMINI_API_KEY=your_key  # or add to .env
+npm run test:e2e
+```
+
+---
+
 ## License
 
 UNLICENSED
