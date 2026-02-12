@@ -33,7 +33,7 @@ export class ContentService {
     return saved;
   }
 
-  async findById(id: string): Promise<Content> {
+  async findById(id: number): Promise<Content> {
     const cacheKey = `${CACHE_KEY_PREFIX}${id}`;
     const cached = await this.cacheManager.get<Content>(cacheKey);
     if (cached) {
@@ -52,7 +52,7 @@ export class ContentService {
     return content;
   }
 
-  async updateStatus(id: string, status: ContentStatus): Promise<Content> {
+  async updateStatus(id: number, status: ContentStatus): Promise<Content> {
     const content = await this.contentRepository.findOne({ where: { id } });
     if (!content) {
       throw new NotFoundException(`Content with id ${id} not found`);

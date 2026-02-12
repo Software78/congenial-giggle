@@ -4,7 +4,7 @@ import { ContentService } from './content.service';
 import { ContentStatus } from './entities/content.entity';
 
 export interface ProcessContentJob {
-  contentId: string;
+  contentId: number;
 }
 
 @Processor('content')

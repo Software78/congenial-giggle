@@ -10,7 +10,7 @@ describe('CreatorService', () => {
   let repository: jest.Mocked<Repository<Creator>>;
 
   const mockCreator: Creator = {
-    id: 'creator-uuid-1',
+    id: 1,
     name: 'Alice',
     email: 'alice@example.com',
     createdAt: new Date(),
@@ -61,10 +61,10 @@ describe('CreatorService', () => {
 
   describe('findById', () => {
     it('should return a creator when found', async () => {
-      const result = await service.findById('creator-uuid-1');
+      const result = await service.findById(1);
 
       expect(repository.findOne).toHaveBeenCalledWith({
-        where: { id: 'creator-uuid-1' },
+        where: { id: 1 },
       });
       expect(result).toEqual(mockCreator);
     });
@@ -72,7 +72,7 @@ describe('CreatorService', () => {
     it('should return null when creator not found', async () => {
       (repository.findOne as jest.Mock).mockResolvedValue(null);
 
-      const result = await service.findById('non-existent');
+      const result = await service.findById(999);
 
       expect(result).toBeNull();
     });

@@ -3,7 +3,7 @@ import { ContentStatus } from '../entities/content.entity';
 
 export class ContentResponseDto {
   @ApiProperty()
-  id: string;
+  id: number;
 
   @ApiProperty()
   title: string;
@@ -15,7 +15,7 @@ export class ContentResponseDto {
   tags: string[];
 
   @ApiProperty()
-  creatorId: string;
+  creatorId: number;
 
   @ApiProperty({ enum: ContentStatus })
   status: ContentStatus;

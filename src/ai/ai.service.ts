@@ -14,7 +14,7 @@ const SYSTEM_PROMPT = `You are a helpful assistant for a content platform. You c
 - Search for content by keyword or tags (use search_content)
 - Provide contextual recommendations based on user queries
 
-Always respond with valid JSON. When summarizing, return: {"summary": "...", "contentId": "..."}.
+Always respond with valid JSON. When summarizing, return: {"summary": "...", "contentId": <number>}.
 When searching/recommending, return: {"results": [...], "message": "..."}.
 Be concise and helpful.`;
 
@@ -70,9 +70,10 @@ export class AIService {
         let toolResult: unknown;
         if (name === 'get_content_by_id') {
           try {
-            const contentId = args?.content_id as string;
-            if (!contentId) {
-              toolResult = { error: 'content_id is required' };
+            const rawId = args?.content_id;
+            const contentId = typeof rawId === 'number' ? rawId : parseInt(String(rawId), 10);
+            if (!contentId || isNaN(contentId)) {
+              toolResult = { error: 'content_id is required and must be an integer' };
             } else {
               const content = await this.contentService.findById(contentId);
               toolResult = {
@@ -202,8 +203,8 @@ export class AIService {
           type: 'object',
           properties: {
             content_id: {
-              type: 'string',
-              description: 'The UUID of the content to fetch',
+              type: 'integer',
+              description: 'The numeric ID of the content to fetch',
             },
           },
           required: ['content_id'],

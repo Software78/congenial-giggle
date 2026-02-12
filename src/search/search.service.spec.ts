@@ -12,11 +12,11 @@ describe('SearchService', () => {
 
   const mockItems: Content[] = [
     {
-      id: 'content-1',
+      id: 1,
       title: 'AI Post',
       description: 'About machine learning',
       tags: ['tech', 'ai'],
-      creatorId: 'creator-1',
+      creatorId: 1,
       status: ContentStatus.PUBLISHED,
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -16,7 +16,7 @@ export class CreatorService {
     return this.creatorRepository.save(creator);
   }
 
-  async findById(id: string): Promise<Creator | null> {
+  async findById(id: number): Promise<Creator | null> {
     return this.creatorRepository.findOne({ where: { id } });
   }
 }

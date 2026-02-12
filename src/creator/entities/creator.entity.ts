@@ -9,8 +9,8 @@ import { Content } from '../../content/entities/content.entity';
 
 @Entity('creators')
 export class Creator {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;

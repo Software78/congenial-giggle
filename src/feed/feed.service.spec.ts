@@ -12,11 +12,11 @@ describe('FeedService', () => {
 
   const mockItems: Content[] = [
     {
-      id: 'content-1',
+      id: 1,
       title: 'Post 1',
       description: 'Desc 1',
       tags: ['tech'],
-      creatorId: 'creator-1',
+      creatorId: 1,
       status: ContentStatus.PUBLISHED,
       createdAt: new Date(),
       updatedAt: new Date(),

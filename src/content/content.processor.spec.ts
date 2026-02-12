@@ -8,7 +8,7 @@ describe('ContentProcessor', () => {
   let contentService: jest.Mocked<ContentService>;
 
   const mockJob = {
-    data: { contentId: 'content-uuid-1' } as ProcessContentJob,
+    data: { contentId: 1 } as ProcessContentJob,
     id: 'job-1',
   };
 
@@ -41,7 +41,7 @@ describe('ContentProcessor', () => {
       await processor.handleProcessContent(mockJob as never);
 
       expect(contentService.updateStatus).toHaveBeenCalledWith(
-        'content-uuid-1',
+        1,
         ContentStatus.PUBLISHED,
       );
       expect(contentService.invalidateFeedCache).toHaveBeenCalled();

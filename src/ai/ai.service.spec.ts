@@ -82,7 +82,7 @@ describe('AIService', () => {
   describe('assist', () => {
     it('should return parsed JSON when model returns valid JSON text', async () => {
       mockGenerateContent.mockResolvedValue({
-        text: '{"summary":"A great article about AI","contentId":"abc-123"}',
+        text: '{"summary":"A great article about AI","contentId":1}',
         functionCalls: undefined,
         candidates: [],
       });
@@ -100,13 +100,13 @@ describe('AIService', () => {
       expect(result).toEqual(
         expect.objectContaining({
           summary: 'A great article about AI',
-          contentId: 'abc-123',
+          contentId: 1,
           requestId: expect.any(String),
         }),
       );
       expect(cacheManager.set).toHaveBeenCalledWith(
         expect.stringMatching(/^ai:assist:[0-9a-f-]{36}$/),
-        { summary: 'A great article about AI', contentId: 'abc-123' },
+        { summary: 'A great article about AI', contentId: 1 },
         600000,
       );
     });
@@ -147,7 +147,7 @@ describe('AIService', () => {
 
     it('should call ContentService.findById when model requests get_content_by_id', async () => {
       const mockContent = {
-        id: 'content-1',
+        id: 1,
         title: 'Test',
         description: 'Desc',
         tags: ['tech'],
@@ -160,7 +160,7 @@ describe('AIService', () => {
           functionCalls: [
             {
               name: 'get_content_by_id',
-              args: { content_id: 'content-1' },
+              args: { content_id: 1 },
             },
           ],
           candidates: [
@@ -177,9 +177,9 @@ describe('AIService', () => {
 
       (contentService.findById as jest.Mock).mockResolvedValue(mockContent);
 
-      const result = await service.assist('Summarize content content-1');
+      const result = await service.assist('Summarize content 1');
 
-      expect(contentService.findById).toHaveBeenCalledWith('content-1');
+      expect(contentService.findById).toHaveBeenCalledWith(1);
       expect(mockGenerateContent).toHaveBeenCalledTimes(2);
       expect(result).toEqual(
         expect.objectContaining({
@@ -192,7 +192,7 @@ describe('AIService', () => {
     it('should call SearchService.search when model requests search_content', async () => {
       const mockSearchResults = [
         {
-          id: 'c1',
+          id: 1,
           title: 'AI Post',
           description: 'About AI',
           tags: ['tech'],
@@ -255,7 +255,7 @@ describe('AIService', () => {
     it('should call AI and cache when requestId is provided but cache misses', async () => {
       cacheManager.get.mockResolvedValue(undefined);
       mockGenerateContent.mockResolvedValue({
-        text: '{"summary":"New summary","contentId":"abc"}',
+        text: '{"summary":"New summary","contentId":1}',
         functionCalls: undefined,
         candidates: [],
       });
@@ -266,7 +266,7 @@ describe('AIService', () => {
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
       expect(cacheManager.set).toHaveBeenCalledWith(
         'ai:assist:550e8400-e29b-41d4-a716-446655440000',
-        { summary: 'New summary', contentId: 'abc' },
+        { summary: 'New summary', contentId: 1 },
         600000,
       );
       expect(result.requestId).toBe('550e8400-e29b-41d4-a716-446655440000');
@@ -277,7 +277,7 @@ describe('AIService', () => {
       mockGenerateContent
         .mockRejectedValueOnce(transientError)
         .mockResolvedValueOnce({
-          text: '{"summary":"After retry","contentId":"id"}',
+          text: '{"summary":"After retry","contentId":1}',
           functionCalls: undefined,
           candidates: [],
         });
@@ -288,7 +288,7 @@ describe('AIService', () => {
       expect(result).toEqual(
         expect.objectContaining({
           summary: 'After retry',
-          contentId: 'id',
+          contentId: 1,
           requestId: expect.any(String),
         }),
       );

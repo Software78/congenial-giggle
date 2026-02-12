@@ -85,7 +85,7 @@ describe('Creators (e2e)', () => {
 
 describe('Content (e2e)', () => {
   let app: INestApplication<App>;
-  let creatorId: string;
+  let creatorId: number;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({

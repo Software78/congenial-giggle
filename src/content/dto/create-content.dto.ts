@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString, IsUUID, MinLength } from 'class-validator';
+import { IsArray, IsInt, IsString, MinLength } from 'class-validator';
 
 export class CreateContentDto {
   @ApiProperty({ example: 'My Post' })
@@ -16,7 +16,7 @@ export class CreateContentDto {
   @IsString({ each: true })
   tags: string[];
 
-  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
-  @IsUUID()
-  creatorId: string;
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  creatorId: number;
 }

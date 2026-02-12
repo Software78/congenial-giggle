@@ -17,8 +17,8 @@ export enum ContentStatus {
 
 @Entity('content')
 export class Content {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
@@ -29,8 +29,8 @@ export class Content {
   @Column('text', { array: true })
   tags: string[];
 
-  @Column({ type: 'uuid' })
-  creatorId: string;
+  @Column({ type: 'int' })
+  creatorId: number;
 
   @ManyToOne(() => Creator, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'creatorId' })

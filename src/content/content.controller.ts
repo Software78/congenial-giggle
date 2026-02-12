@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, ParseIntPipe } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ContentService } from './content.service';
 import { CreateContentDto } from './dto/create-content.dto';
@@ -18,17 +18,17 @@ export class ContentController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get content by ID' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     const content = await this.contentService.findById(id);
     return this.toResponse(content);
   }
 
   private toResponse(content: {
-    id: string;
+    id: number;
     title: string;
     description: string;
     tags: string[];
-    creatorId: string;
+    creatorId: number;
     status: string;
     createdAt: Date;
     updatedAt: Date;

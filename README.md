@@ -60,17 +60,17 @@ flowchart TB
 ## Data Model
 
 ### Creator
-- `id` (UUID, PK)
+- `id` (integer, PK, auto-increment)
 - `name` (varchar 255)
 - `email` (varchar 255)
 - `createdAt`
 
 ### Content
-- `id` (UUID, PK)
+- `id` (integer, PK, auto-increment)
 - `title` (varchar 255)
 - `description` (text)
 - `tags` (text[], PostgreSQL array)
-- `creatorId` (UUID, FK to creators)
+- `creatorId` (integer, FK to creators)
 - `status` (enum: draft | published | archived)
 - `createdAt`, `updatedAt`
 
@@ -114,7 +114,7 @@ The queue uses Redis as the broker. The processor runs in the same process as th
 **Design**:
 - **AIService** (dedicated service layer) orchestrates the LLM and tool calls
 - **Tools** defined as Gemini function declarations:
-  - `get_content_by_id(content_id)` — fetches content by UUID
+  - `get_content_by_id(content_id)` — fetches content by numeric ID
   - `search_content(query, tags?)` — searches content by keyword and optional tags
 
 **Flow**:
@@ -166,6 +166,8 @@ docker-compose up -d
 
 Starts PostgreSQL (port 5432) and Redis (port 6379).
 
+> **Note:** Primary keys use integer auto-increment. If upgrading from a previous UUID-based schema, drop and recreate the database (or run migrations) to apply the new column types.
+
 ### 2. Environment Variables
 
 Copy `.env.example` to `.env` and fill in values:
@@ -193,7 +195,7 @@ npm install
 npm run start:dev
 ```
 
-The API listens on `http://localhost:3000`. **Swagger docs** are at `http://localhost:3000/api`.
+The API listens on `http://localhost:3000`. **Swagger docs** are at `http://localhost:3000/api`. [Staging Swagger](https://congenial-giggle.onrender.com/api) is available on the live server.
 
 ### 5. API Endpoints
 
@@ -218,7 +220,7 @@ curl -X POST http://localhost:3000/creators \
 # 2. Publish content (use creator id from step 1)
 curl -X POST http://localhost:3000/content \
   -H "Content-Type: application/json" \
-  -d '{"title":"My Post","description":"A great article","tags":["tech","ai"],"creatorId":"<creator-uuid>"}'
+  -d '{"title":"My Post","description":"A great article","tags":["tech","ai"],"creatorId":<creator-id>}'
 
 # 3. Get feed (after job processes, ~1–2 seconds)
 curl http://localhost:3000/feed?limit=10
@@ -229,7 +231,7 @@ curl "http://localhost:3000/search?q=article&tags=tech"
 # 5. AI assist
 curl -X POST http://localhost:3000/ai/assist \
   -H "Content-Type: application/json" \
-  -d '{"query":"Summarize the content with id <content-uuid>"}'
+  -d '{"query":"Summarize the content with id <content-id>"}'
 ```
 
 ---
