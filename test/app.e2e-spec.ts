@@ -3,6 +3,8 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { ResponseTransformInterceptor } from '../src/common/response-transform.interceptor';
+import { HttpExceptionFilter } from '../src/common/http-exception.filter';
 
 // Gemini API key required for AIService init (not used in most e2e tests)
 beforeAll(() => {
@@ -24,6 +26,8 @@ describe('AppController (e2e)', () => {
         transform: true,
       }),
     );
+    app.useGlobalInterceptors(new ResponseTransformInterceptor());
+    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
   });
 
@@ -36,7 +40,12 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect((res) => {
-        expect(res.body).toEqual({ status: 'ok' });
+        expect(res.body).toMatchObject({
+          data: { status: 'ok' },
+          code: 200,
+          message: 'Success',
+        });
+        expect(res.body.requestId).toBeDefined();
       });
   });
 });
@@ -56,6 +65,8 @@ describe('Creators (e2e)', () => {
         transform: true,
       }),
     );
+    app.useGlobalInterceptors(new ResponseTransformInterceptor());
+    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
   });
 
@@ -64,14 +75,16 @@ describe('Creators (e2e)', () => {
   });
 
   it('POST /creators creates a creator', () => {
+    const email = `test-${Date.now()}@example.com`;
     return request(app.getHttpServer())
       .post('/creators')
-      .send({ name: 'Test Creator', email: 'test@example.com' })
+      .send({ name: 'Test Creator', email })
       .expect(201)
       .expect((res) => {
-        expect(res.body).toHaveProperty('id');
-        expect(res.body.name).toBe('Test Creator');
-        expect(res.body.email).toBe('test@example.com');
+        expect(res.body.data).toHaveProperty('id');
+        expect(res.body.data.name).toBe('Test Creator');
+        expect(res.body.data.email).toBe(email);
+        expect(res.body.requestId).toBeDefined();
       });
   });
 
@@ -79,7 +92,29 @@ describe('Creators (e2e)', () => {
     return request(app.getHttpServer())
       .post('/creators')
       .send({ name: 'Test', email: 'not-an-email' })
-      .expect(400);
+      .expect(400)
+      .expect((res) => {
+        expect(res.body.data).toBeNull();
+        expect(res.body.message).toBeDefined();
+        expect(res.body.requestId).toBeDefined();
+      });
+  });
+
+  it('POST /creators returns 409 when email already exists', async () => {
+    const email = `duplicate-${Date.now()}@example.com`;
+    await request(app.getHttpServer())
+      .post('/creators')
+      .send({ name: 'First', email });
+
+    return request(app.getHttpServer())
+      .post('/creators')
+      .send({ name: 'Second', email })
+      .expect(409)
+      .expect((res) => {
+        expect(res.body.data).toBeNull();
+        expect(res.body.message).toBe('A user with this value already exists');
+        expect(res.body.requestId).toBeDefined();
+      });
   });
 });
 
@@ -99,12 +134,19 @@ describe('Content (e2e)', () => {
         transform: true,
       }),
     );
+    app.useGlobalInterceptors(new ResponseTransformInterceptor());
+    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
 
     const creatorRes = await request(app.getHttpServer())
       .post('/creators')
-      .send({ name: 'Content Creator', email: 'content@example.com' });
-    creatorId = creatorRes.body.id;
+      .send({
+        name: 'Content Creator',
+        email: `content-${Date.now()}@example.com`,
+      });
+    expect(creatorRes.status).toBe(201);
+    expect(creatorRes.body.data).toBeDefined();
+    creatorId = creatorRes.body.data.id;
   });
 
   afterEach(async () => {
@@ -122,9 +164,10 @@ describe('Content (e2e)', () => {
       })
       .expect(201)
       .expect((res) => {
-        expect(res.body).toHaveProperty('id');
-        expect(res.body.title).toBe('E2E Test Post');
-        expect(res.body.status).toBe('draft');
+        expect(res.body.data).toHaveProperty('id');
+        expect(res.body.data.title).toBe('E2E Test Post');
+        expect(res.body.data.status).toBe('draft');
+        expect(res.body.requestId).toBeDefined();
       });
   });
 
@@ -137,14 +180,15 @@ describe('Content (e2e)', () => {
         tags: ['test'],
         creatorId,
       });
-    const contentId = createRes.body.id;
+    const contentId = createRes.body.data.id;
 
     return request(app.getHttpServer())
       .get(`/content/${contentId}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.id).toBe(contentId);
-        expect(res.body.title).toBe('Get Test');
+        expect(res.body.data.id).toBe(contentId);
+        expect(res.body.data.title).toBe('Get Test');
+        expect(res.body.requestId).toBeDefined();
       });
   });
 });
@@ -164,6 +208,8 @@ describe('Feed (e2e)', () => {
         transform: true,
       }),
     );
+    app.useGlobalInterceptors(new ResponseTransformInterceptor());
+    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
   });
 
@@ -176,7 +222,8 @@ describe('Feed (e2e)', () => {
       .get('/feed')
       .expect(200)
       .expect((res) => {
-        expect(Array.isArray(res.body)).toBe(true);
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body.requestId).toBeDefined();
       });
   });
 });

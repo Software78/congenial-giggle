@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Creator } from './entities/creator.entity';
 import { CreateCreatorDto } from './dto/create-creator.dto';
+import { Creator } from './entities/creator.entity';
 
 @Injectable()
 export class CreatorService {

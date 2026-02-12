@@ -1,11 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import * as CacheManager from 'cache-manager';
 import { GoogleGenAI } from '@google/genai';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as CacheManager from 'cache-manager';
+import { v4 as uuidv4 } from 'uuid';
 import { ContentService } from '../content/content.service';
 import { SearchService } from '../search/search.service';
-import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
 
 const AI_ASSIST_CACHE_KEY_PREFIX = 'ai:assist:';
 
@@ -52,7 +52,7 @@ export class AIService {
     ];
 
     let result = await this.generateContentWithRetry({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: contents as never,
       config: {
         tools: [{ functionDeclarations: tools }],
@@ -121,7 +121,7 @@ export class AIService {
         });
 
         result = await this.generateContentWithRetry({
-          model: 'gemini-1.5-flash',
+          model: 'gemini-2.5-flash',
           contents: contents as never,
           config: {
             tools: [{ functionDeclarations: tools }],

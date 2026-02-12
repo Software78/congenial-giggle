@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { AIService } from './ai.service';
+import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
 import { ContentService } from '../content/content.service';
 import { SearchService } from '../search/search.service';
+import { AIService } from './ai.service';
 
 // Mock Google GenAI before importing AIService
 const mockGenerateContent = jest.fn();
@@ -91,7 +91,7 @@ describe('AIService', () => {
 
       expect(mockGenerateContent).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'gemini-1.5-flash',
+          model: 'gemini-2.5-flash',
           config: expect.objectContaining({
             responseMimeType: 'application/json',
           }),

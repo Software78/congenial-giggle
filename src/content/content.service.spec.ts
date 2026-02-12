@@ -124,9 +124,7 @@ describe('ContentService', () => {
       (contentRepository.findOne as jest.Mock).mockResolvedValue(null);
 
       await expect(service.findById(999)).rejects.toThrow(NotFoundException);
-      await expect(service.findById(999)).rejects.toThrow(
-        'Content with id 999 not found',
-      );
+      await expect(service.findById(999)).rejects.toThrow('Content not found');
     });
   });
 

@@ -62,7 +62,7 @@ flowchart TB
 ### Creator
 - `id` (integer, PK, auto-increment)
 - `name` (varchar 255)
-- `email` (varchar 255)
+- `email` (varchar 255, unique)
 - `createdAt`
 
 ### Content
@@ -197,7 +197,38 @@ npm run start:dev
 
 The API listens on `http://localhost:3000`. **Swagger docs** are at `http://localhost:3000/api`. [Staging Swagger](https://congenial-giggle.onrender.com/api) is available on the live server.
 
-### 5. API Endpoints
+### 5. API Response Format
+
+All responses follow a consistent structure:
+
+| Field      | Type   | Description                                           |
+|------------|--------|-------------------------------------------------------|
+| requestId  | string | UUID for request correlation; set via `x-request-id` header or auto-generated |
+| data       | object \| null | Response payload; null on error              |
+| code       | number | HTTP status code                                     |
+| message    | string | User-facing message (success or error description)    |
+
+**Success example:**
+```json
+{
+  "requestId": "550e8400-e29b-41d4-a716-446655440000",
+  "data": { "id": 1, "name": "Alice", "email": "alice@example.com" },
+  "code": 201,
+  "message": "Success"
+}
+```
+
+**Error example:**
+```json
+{
+  "requestId": "550e8400-e29b-41d4-a716-446655440000",
+  "data": null,
+  "code": 409,
+  "message": "A user with this value already exists"
+}
+```
+
+### 6. API Endpoints
 
 | Method | Path         | Description                         |
 |--------|--------------|-------------------------------------|
@@ -209,10 +240,22 @@ The API listens on `http://localhost:3000`. **Swagger docs** are at `http://loca
 | GET    | /search      | Search by `q` and `tags` (cached)   |
 | POST   | /ai/assist   | AI assistant with tool calls        |
 
-### Example: Publish Content
+### 7. Error Handling
+
+| Code | Condition | Example message                          |
+|------|-----------|------------------------------------------|
+| 400  | Validation failed                        | Validation error details from class-validator |
+| 400  | Invalid reference (foreign key violation) | Invalid reference to a related resource  |
+| 404  | Resource not found                       | Content not found                        |
+| 409  | Duplicate unique value                   | A user with this value already exists    |
+| 500  | Internal error                           | An unexpected error occurred             |
+
+### 8. Example: Publish Content
+
+All responses are wrapped in the standard format; use `response.data` for the payload (e.g. `data.id` for the creator ID).
 
 ```bash
-# 1. Create a creator
+# 1. Create a creator (response.data.id is the creator ID)
 curl -X POST http://localhost:3000/creators \
   -H "Content-Type: application/json" \
   -d '{"name":"Alice","email":"alice@example.com"}'
@@ -243,6 +286,7 @@ src/
 ├── main.ts
 ├── app.module.ts
 ├── config/
+├── common/           # Shared utilities (API response helper, request ID, exception filter)
 ├── creator/          # Creator CRUD
 ├── content/          # Content, queue processor
 ├── feed/             # Paginated feed
@@ -264,6 +308,12 @@ npm test
 docker-compose up -d
 export GEMINI_API_KEY=your_key  # or add to .env
 npm run test:e2e
+```
+
+**Queue test** (manual script; API must be running):
+```bash
+npm run start:dev   # in one terminal
+npm run test:queue  # in another; optionally: npm run test:queue https://congenial-giggle.onrender.com
 ```
 
 ---

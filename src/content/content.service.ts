@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { InjectQueue } from '@nestjs/bull';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as Bull from 'bull';
 import * as CacheManager from 'cache-manager';
 import { Repository } from 'typeorm';
-import { Content, ContentStatus } from './entities/content.entity';
 import { CreateContentDto } from './dto/create-content.dto';
+import { Content, ContentStatus } from './entities/content.entity';
 
 const CONTENT_CACHE_TTL = 300; // 5 minutes
 const CACHE_KEY_PREFIX = 'content:';
@@ -45,7 +45,7 @@ export class ContentService {
       relations: ['creator'],
     });
     if (!content) {
-      throw new NotFoundException(`Content with id ${id} not found`);
+      throw new NotFoundException('Content not found');
     }
 
     await this.cacheManager.set(cacheKey, content, CONTENT_CACHE_TTL * 1000);
@@ -55,7 +55,7 @@ export class ContentService {
   async updateStatus(id: number, status: ContentStatus): Promise<Content> {
     const content = await this.contentRepository.findOne({ where: { id } });
     if (!content) {
-      throw new NotFoundException(`Content with id ${id} not found`);
+        throw new NotFoundException('Content not found');
     }
     content.status = status;
     const updated = await this.contentRepository.save(content);

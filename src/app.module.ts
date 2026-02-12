@@ -7,6 +7,7 @@ import { Keyv } from 'keyv';
 import KeyvRedis from '@keyv/redis';
 
 import configuration from './config/configuration';
+import { CommonModule } from './common/common.module';
 import { AppController } from './app.controller';
 import { CreatorModule } from './creator/creator.module';
 import { ContentModule } from './content/content.module';
@@ -16,6 +17,7 @@ import { AIModule } from './ai/ai.module';
 
 @Module({
   imports: [
+    CommonModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
