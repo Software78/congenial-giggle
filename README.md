@@ -126,6 +126,8 @@ The queue uses Redis as the broker. The processor runs in the same process as th
 
 **Output**: Structured JSON (e.g. `{ "summary": "...", "contentId": "..." }` or `{ "results": [...], "message": "..." }`)
 
+See [Example AI prompts](docs/ai-prompts.md) for queries you can try.
+
 ---
 
 ## Performance Considerations

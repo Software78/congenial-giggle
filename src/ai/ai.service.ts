@@ -93,12 +93,14 @@ export class AIService {
             10,
             0,
           );
-          toolResult = items.map((c) => ({
-            id: c.id,
-            title: c.title,
-            description: c.description.substring(0, 200),
-            tags: c.tags,
-          }));
+          toolResult = {
+            results: items.map((c) => ({
+              id: c.id,
+              title: c.title,
+              description: c.description.substring(0, 200),
+              tags: c.tags,
+            })),
+          };
         } else {
           toolResult = { error: `Unknown function: ${name}` };
         }
