@@ -22,10 +22,7 @@ export class AIService {
     private readonly searchService: SearchService,
     private readonly configService: ConfigService,
   ) {
-    const apiKey =
-      this.configService.get<string>('GEMINI_API_KEY') ||
-      this.configService.get<string>('gemini.apiKey') ||
-      process.env.GEMINI_API_KEY;
+    const apiKey = this.configService.get<string>('gemini.apiKey') || process.env.GEMINI_API_KEY;
     this.ai = new GoogleGenAI({ apiKey: apiKey || '' });
   }
 

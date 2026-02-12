@@ -5,13 +5,20 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { SearchService } from './search.service';
 
+@ApiTags('search')
 @Controller('search')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Search content by query and tags (cached)' })
+  @ApiQuery({ name: 'q', required: false })
+  @ApiQuery({ name: 'tags', required: false, description: 'Comma-separated tags' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
   search(
     @Query('q') query?: string,
     @Query('tags') tagsParam?: string,

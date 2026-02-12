@@ -3,8 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
-import { memoryStore } from 'cache-manager';
+import { Keyv } from 'keyv';
+import KeyvRedis from '@keyv/redis';
 
 import configuration from './config/configuration';
 import { AppController } from './app.controller';
@@ -37,16 +37,20 @@ import { AIModule } from './ai/ai.module';
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => {
+        const redisUrl =
+          process.env.REDIS_URL ||
+          `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`;
         try {
-          const store = await redisStore({
-            socket: {
-              host: process.env.REDIS_HOST || 'localhost',
-              port: parseInt(process.env.REDIS_PORT || '6379', 10),
-            },
-          });
-          return { store, ttl: 60 * 1000 };
+          const redisStore = new KeyvRedis(redisUrl);
+          return {
+            stores: [new Keyv({ store: redisStore })],
+            ttl: 60 * 1000,
+          };
         } catch {
-          return { store: memoryStore(), ttl: 60 * 1000 };
+          return {
+            stores: [new Keyv()],
+            ttl: 60 * 1000,
+          };
         }
       },
     }),

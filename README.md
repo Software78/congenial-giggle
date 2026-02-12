@@ -184,7 +184,7 @@ cp .env.example .env
 ### 3. Install Dependencies
 
 ```bash
-npm install --legacy-peer-deps
+npm install
 ```
 
 ### 4. Run the API
@@ -193,7 +193,7 @@ npm install --legacy-peer-deps
 npm run start:dev
 ```
 
-The API listens on `http://localhost:3000`.
+The API listens on `http://localhost:3000`. **Swagger docs** are at `http://localhost:3000/api`.
 
 ### 5. API Endpoints
 
